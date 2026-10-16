@@ -1,5 +1,6 @@
 import Navbar from "./components/Navbar"
 import BusinessCard from "./components/BusinessCard"
+import { useState } from "react"
 
 function App() {
   const businesses = [
@@ -25,6 +26,19 @@ function App() {
       description: "Description 3",
     },
   ]
+
+  // Search
+  const [searchTerm, setSearchTerm] = useState("")
+
+  // Filter
+  const filteredBusinesses = businesses.filter((business) =>{
+    return (
+    business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    business.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    business.location.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  })
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -55,8 +69,19 @@ function App() {
             <p className='text-gray-600'>Find the best local businesses near you.</p>
           </div>
 
+          <div className="mb-8">
+            <input
+              type="text"
+              placeholder="Search by name, category, or location..."
+              className="border border-gray-300 rounded-lg py-2 px-4 w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {filteredBusinesses.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {businesses.map((business) => (
+            {filteredBusinesses.map((business) => (
               <BusinessCard
                 key={business.id}
                 name={business.name}
@@ -66,6 +91,9 @@ function App() {
               />
             ))}
           </div>
+        ) : (
+          <p className="text-gray-600">No businesses found. Try searching again.</p>
+        )}
         </section>
       </main>
       <footer className="bg-gray-800 text-white py-4 mt-8 text-center">@ 2026 MtaaBiz. Supporting Local Businesses.
