@@ -3,31 +3,9 @@ import BusinessCard from "./components/BusinessCard"
 import BusinessDetails from "./pages/BusinessDetails"
 import { useState } from "react"
 import { Routes, Route } from "react-router-dom"
+import businesses from "./data/Business"
 
 function Home() {
-  const businesses = [
-    {
-      id: 1,
-      name: "Fresh Cuts Barbershop",
-      category: "Beauty & Grooming",
-      location: "Kasarani, Nairobi",
-      description: "Professional haircuts and grooming services.",
-    },
-    {
-      id: 2,
-      name: "Mama Njeri Restaurant",
-      category: "Food & Dining",
-      location: "Roysambu, Nairobi",
-      description: "Local meals prepared fresh every day.",
-    },
-    {
-      id: 3,
-      name: "SmartFix Electronics",
-      category: "Electronics",
-      location: "Thika Road, Nairobi",
-      description: "Phone repairs and electronics services.",
-    },
-  ]
 
   // Search
   const [searchTerm, setSearchTerm] = useState("")
