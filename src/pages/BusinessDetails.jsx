@@ -1,11 +1,23 @@
 import { Link, useParams } from "react-router-dom";
 import businesses from "../data/Business";
-
+import { useState } from "react";
 
 function BusinessDetails() {
   const { id } = useParams();
 
   const business = businesses.find((item) => item.id === Number(id));
+
+  const [selectedService, setSelectedService] = useState(null);
+  const [customerName, setCustomerName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookingTime, setBookingTime] = useState("");
+  const [bookingSubmitted, setBookingSubmitted] = useState(false);
+
+  function handleBookingSubmit(event) {
+    event.preventDefault();
+    setBookingSubmitted(true);
+  }
 
   if (!business) {
     return (
@@ -21,7 +33,7 @@ function BusinessDetails() {
   return (
     <main className="max-w-5xl mx-auto px-6 py-10">
       <Link to="/" className="text-green-700 hover:underline">
-      Back to businesses
+        Back to businesses
       </Link>
 
       <section className="mt-6 bg-white p-8 rounded-xl shadow-sm border">
@@ -46,16 +58,127 @@ function BusinessDetails() {
                 KSh {service.price.toLocaleString()}
               </p>
 
-              <button
-                disabled
-                className="mt-4 bg-gray-200 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed"
-              >
-                Booking coming soon
+              <button 
+              type="button" 
+              onClick={() => { setSelectedService(service); 
+              setBookingSubmitted(false)}} className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg mt-4 hover:bg-green-600 hover:text-white"> 
+              Book This Service
               </button>
             </div>
           ))}
         </div>
       </section>
+
+      {selectedService && (
+        <section className="mt-10 bg-white border rounded-xl p-5">
+          <h2 className="text-2xl font-bold mb-5">Book {selectedService.name}</h2>
+
+          <p>
+            You selected: <strong>{selectedService.name}</strong>
+            for KSh {selectedService.price.toLocaleString()}
+          </p>
+
+          {bookingSubmitted ? (
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+            <h3 className="text-green-800 font-semibold mt-2">
+              Booking submitted successfully!
+            </h3>
+            <p className="text-green-800">
+              Thank you, {customerName}! Your booking has been confirmed.
+            </p>
+
+            <p className="text-green-800">
+              Date: {bookingDate} . Time: {bookingTime}.
+            </p>
+
+            <p className="text-green-800">
+              We look forward to serving you!
+            </p>
+
+            <button type="button" onClick={() => {
+              setBookingSubmitted(false)
+              setCustomerName("")
+              setPhone("")
+              setBookingDate("")
+              setBookingTime("")
+            }}
+            className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg mt-4 hover:bg-green-600 hover:text-white">
+            Book Another Service
+            </button>
+          </div>
+          ) : (
+            <form onSubmit={handleBookingSubmit}
+              className="mb-4">
+                <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Customer Name
+                </label>
+                <input
+                  type="text"
+                  id="customerName"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Enter your name"
+                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel" required
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Enter your phone number"
+                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Booking Date
+                </label>
+                <input
+                  type="date"
+                  id="bookingDate"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Booking Time
+                </label>
+                <input
+                  type="time"
+                  id="bookingTime"
+                  value={bookingTime}
+                  onChange={(e) => setBookingTime(e.target.value)}
+                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+              </div>
+
+              <div className="mt-4">
+                <button
+                  type="submit"
+                  className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg hover:bg-green-600 hover:text-white">
+                  Submit Booking
+                </button>
+
+                <button type="button" onClick={() => {
+                  setSelectedService(null)
+                  setBookingSubmitted(false)
+                }}
+                className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100">
+                Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
+
     </main>
   );
 }
