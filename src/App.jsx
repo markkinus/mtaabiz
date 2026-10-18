@@ -1,8 +1,10 @@
 import Navbar from "./components/Navbar"
 import BusinessCard from "./components/BusinessCard"
+import BusinessDetails from "./pages/BusinessDetails"
 import { useState } from "react"
+import { Routes, Route } from "react-router-dom"
 
-function App() {
+function Home() {
   const businesses = [
     {
       id: 1,
@@ -84,6 +86,7 @@ function App() {
             {filteredBusinesses.map((business) => (
               <BusinessCard
                 key={business.id}
+                id={business.id}
                 name={business.name}
                 category={business.category}
                 location={business.location}
@@ -100,6 +103,15 @@ function App() {
 
       </footer>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/businesses/:id" element={<BusinessDetails />} />
+    </Routes>
   )
 }
 
