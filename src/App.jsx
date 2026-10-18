@@ -8,24 +8,24 @@ function Home() {
   const businesses = [
     {
       id: 1,
-      name: "Business 1",
-      category: "Category 1",
-      location: "Location 1",
-      description: "Description 1",
+      name: "Fresh Cuts Barbershop",
+      category: "Beauty & Grooming",
+      location: "Kasarani, Nairobi",
+      description: "Professional haircuts and grooming services.",
     },
     {
       id: 2,
-      name: "Business 2",
-      category: "Category 2",
-      location: "Location 2",
-      description: "Description 2",
+      name: "Mama Njeri Restaurant",
+      category: "Food & Dining",
+      location: "Roysambu, Nairobi",
+      description: "Local meals prepared fresh every day.",
     },
     {
       id: 3,
-      name: "Business 3",
-      category: "Category 3",
-      location: "Location 3",
-      description: "Description 3",
+      name: "SmartFix Electronics",
+      category: "Electronics",
+      location: "Thika Road, Nairobi",
+      description: "Phone repairs and electronics services.",
     },
   ]
 
