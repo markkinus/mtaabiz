@@ -14,8 +14,27 @@ function BusinessDetails() {
   const [bookingTime, setBookingTime] = useState("");
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
 
+  const [bookings, setBookings] = useState([])
+
   function handleBookingSubmit(event) {
     event.preventDefault();
+
+    const newBooking = {
+      id: Date.now(), 
+      businessName: business.name,  
+      serviceName: selectedService.name, 
+      price: selectedService.price, 
+      customerName: customerName, 
+      phone: phone, 
+      date: bookingDate, 
+      time: bookingTime, 
+      status: "pending"
+    };
+
+    setBookings((previousBookings) => [
+      ...previousBookings,
+      newBooking
+    ]);
     setBookingSubmitted(true);
   }
 
@@ -178,6 +197,33 @@ function BusinessDetails() {
           )}
         </section>
       )}
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-bold mb-5">Booking Request</h2>
+        {bookings.length === 0 ? (
+          <p className = "text-gray-600">No booking requests yet.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {bookings.map((booking) => (
+              <div key={booking.id} className="bg-white border border-gray-300 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold">{booking.serviceName}</h3>
+                <p className = "text-gray-600">Business:{booking.businessName}</p>
+                <p className = "text-gray-600">Customer Name: {booking.customerName}
+                </p>
+                <p className = "text-gray-600">Phone Number: {booking.phone}
+                </p>
+                <p className = "text-gray-600">Booking Date: {booking.date}
+                </p>
+                <p className = "text-gray-600">Booking Time: {booking.time}
+                </p>
+                <p className = "font-semibold text-green-800 mt-2">KSH {booking.price.toLocaleString()}</p>
+                <p className = "text-gray-600">Status: {booking.status}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        <p>{selectedService?.description}</p>
+      </section>
 
     </main>
   );
