@@ -16,6 +16,7 @@ function BusinessDetails() {
 
   const [bookings, setBookings] = useState([])
 
+  // Function to handle form submission
   function handleBookingSubmit(event) {
     event.preventDefault();
 
@@ -28,7 +29,7 @@ function BusinessDetails() {
       phone: phone, 
       date: bookingDate, 
       time: bookingTime, 
-      status: "pending"
+      status: "Pending"
     };
 
     setBookings((previousBookings) => [
@@ -36,6 +37,15 @@ function BusinessDetails() {
       newBooking
     ]);
     setBookingSubmitted(true);
+  }
+
+  // Function to update the booking status
+  function updateBookingStatus(bookingId, newStatus) {
+    setBookings((previousBookings) =>
+      previousBookings.map((booking) =>
+        booking.id === bookingId ? { ...booking, status: newStatus } : booking
+      )
+    );
   }
 
   if (!business) {
@@ -218,6 +228,20 @@ function BusinessDetails() {
                 </p>
                 <p className = "font-semibold text-green-800 mt-2">KSH {booking.price.toLocaleString()}</p>
                 <p className = "text-gray-600">Status: {booking.status}</p>
+                {booking.status === "Pending" && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => updateBookingStatus(booking.id, "Accepted")}
+                      className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg hover:bg-green-600 hover:text-white">
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => updateBookingStatus(booking.id, "Declined")}
+                      className="w-full border border-red-700 text-red-800 py-2 px-4 rounded-lg hover:bg-red-600 hover:text-white mt-2">
+                      Decline
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
