@@ -9,6 +9,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase/config";
 import BusinessOwnerDashboard from "./pages/BusinessOwnerDashboard";
 import OwnerAuth from "./pages/OwnerAuth";
+import ProtectedOwnerRoute from "./components/ProtectedOwnerRoute";
 
 function Home() {
   // Search
@@ -146,6 +147,7 @@ function App() {
       <Route path="/businesses/:id" element={<BusinessDetails />} />
       <Route path="/owner/dashboard" element={<BusinessOwnerDashboard />} />
       <Route path="/owner/auth" element={<OwnerAuth />} />
+      <Route path="/owner/dashboard" element={<ProtectedOwnerRoute> <BusinessOwnerDashboard /> </ProtectedOwnerRoute>}/>
     </Routes>
   );
 }
