@@ -7,6 +7,7 @@ import { testFirestore } from "./firebase/testFirestore";
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase/config";
+import BusinessOwnerDashboard from "./pages/BusinessOwnerDashboard";
 
 function Home() {
   // Search
@@ -142,6 +143,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/businesses/:id" element={<BusinessDetails />} />
+      <Route path="/owner/dashboard" element={<BusinessOwnerDashboard />} />
     </Routes>
   );
 }
