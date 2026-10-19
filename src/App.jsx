@@ -4,6 +4,8 @@ import BusinessDetails from "./pages/BusinessDetails"
 import { useState } from "react"
 import { Routes, Route } from "react-router-dom"
 import businesses from "./data/Business"
+import { testFirestore } from "./firebase/testFirestore"
+import { useEffect } from "react"
 
 function Home() {
 
@@ -18,6 +20,13 @@ function Home() {
     business.location.toLowerCase().includes(searchTerm.toLowerCase())
   )
   })
+
+  // Firebase
+  useEffect(() => {
+    testFirestore().catch((error) => { 
+      console.error("Firebase error:", error);
+  })
+}, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
