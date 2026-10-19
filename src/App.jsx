@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "./firebase/config";
 import BusinessOwnerDashboard from "./pages/BusinessOwnerDashboard";
+import OwnerAuth from "./pages/OwnerAuth";
 
 function Home() {
   // Search
@@ -144,6 +145,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/businesses/:id" element={<BusinessDetails />} />
       <Route path="/owner/dashboard" element={<BusinessOwnerDashboard />} />
+      <Route path="/owner/auth" element={<OwnerAuth />} />
     </Routes>
   );
 }
