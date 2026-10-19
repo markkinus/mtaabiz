@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { addDoc, collection } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
 
 function BusinessOwnerDashboard() {
   const [businessName, setBusinessName] = useState("");
@@ -27,19 +29,38 @@ function BusinessOwnerDashboard() {
     setServices(services.filter((_, serviceIndex) => serviceIndex !== index));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    console.log({
-      businessName,
-      category,
-      location,
-      description,
-      services,
-    });
+    if (!auth.currentUser) {
+      alert("You must be logged in as a business owner to add a business.");
+      return;
+    }
 
-    alert("Form works!.");
-  }
+    try {
+      const businessData = {
+        name: businessName,
+        category: category, 
+        location: location, 
+        description: description,
+        services: services.map ((service) => ({
+          name: service.name,
+          price: service.price,
+        })),
+        ownerId: auth.currentUser.uid,
+        published: true,
+      };
+
+      await addDoc(collection(db, "businesses"), businessData);
+      alert("Business added successfully!");
+
+      console.log("Business data:", businessData);
+    } catch (error) {
+      console.error("Error adding business:", error);
+      alert("An error occurred while adding the business. Please try again.");
+    }
+  };
+     
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
