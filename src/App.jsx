@@ -146,8 +146,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/businesses/:id" element={<BusinessDetails />} />
-      <Route path="/owner/dashboard" element={<BusinessOwnerDashboard />} />
+      <Route path="/businesses/:id" element={<BusinessDetails />} /> 
       <Route path="/owner/auth" element={<OwnerAuth />} />
       <Route path="/owner/dashboard" element={<ProtectedOwnerRoute> <BusinessOwnerDashboard /> </ProtectedOwnerRoute>}/>
       <Route path="/login" element={<CustomerAuth />} />

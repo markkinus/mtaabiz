@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase/config";
 import { Link } from "react-router-dom";
@@ -10,36 +10,56 @@ function MyBookings() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeBookings = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      // Stop listening to the previous user's bookings
+      if (unsubscribeBookings) {
+        unsubscribeBookings();
+        unsubscribeBookings = null;
+      }
+
       if (!user) {
         setBookings([]);
         setLoading(false);
+        setError("");
         return;
       }
 
-      try {
-        const bookingsQuery = query(
-          collection(db, "bookings"),
-          where("customerId", "==", user.uid),
-        );
+      setLoading(true);
+      setError("");
 
-        const snapshot = await getDocs(bookingsQuery);
+      const bookingsQuery = query(
+        collection(db, "bookings"),
+        where("customerId", "==", user.uid),
+      );
 
-        const customerBookings = snapshot.docs.map((bookingDoc) => ({
-          id: bookingDoc.id,
-          ...bookingDoc.data(),
-        }));
+      unsubscribeBookings = onSnapshot(
+        bookingsQuery,
+        (snapshot) => {
+          const customerBookings = snapshot.docs.map((bookingDoc) => ({
+            id: bookingDoc.id,
+            ...bookingDoc.data(),
+          }));
 
-        setBookings(customerBookings);
-      } catch (err) {
-        console.error("Error loading bookings:", err);
-        setError("Could not load your bookings. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+          setBookings(customerBookings);
+          setLoading(false);
+        },
+        (error) => {
+          console.error("Error listening to bookings:", error);
+          setError("Could not load your bookings. Please try again.");
+          setLoading(false);
+        },
+      );
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+
+      if (unsubscribeBookings) {
+        unsubscribeBookings();
+      }
+    };
   }, []);
 
   if (loading) {

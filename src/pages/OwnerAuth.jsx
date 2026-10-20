@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase/config";
+import { auth, db } from "../firebase/config";
+import { doc, setDoc } from "firebase/firestore";
 
 function OwnerAuth() {
   const [isRegistering, setIsRegistering] = useState(true);
@@ -19,14 +23,38 @@ function OwnerAuth() {
 
     try {
       if (isRegistering) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
+
+        // Create the owner profile only during registration
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          email: userCredential.user.email,
+          role: "owner",
+          createdAt: new Date(),
+        });
       } else {
+        // Login only — don't overwrite the user's profile
         await signInWithEmailAndPassword(auth, email, password);
       }
 
       navigate("/owner/dashboard");
     } catch (error) {
-      setError(error.message);
+      console.error("Owner authentication error:", error.code, error.message);
+
+      setError(
+        error.code === "auth/email-already-in-use"
+          ? "This email is already registered. Please log in instead."
+          : error.code === "auth/weak-password"
+            ? "Your password is too weak. Use at least 6 characters."
+            : error.code === "auth/invalid-email"
+              ? "Please enter a valid email address."
+              : error.code === "auth/operation-not-allowed"
+                ? "Email/password registration is disabled in Firebase."
+                : error.message,
+      );
     } finally {
       setLoading(false);
     }
