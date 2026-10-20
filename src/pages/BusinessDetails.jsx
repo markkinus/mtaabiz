@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useState, useEffect } from "react";
 
@@ -44,23 +44,37 @@ function BusinessDetails() {
   const [bookings, setBookings] = useState([]);
 
   // Function to handle form submission
-  function handleBookingSubmit(event) {
+  async function handleBookingSubmit(event) {
     event.preventDefault();
 
-    const newBooking = {
-      id: Date.now(),
+    if(!selectedService || !business) {
+      alert("Please select a service first.");
+      return;
+    }
+    
+    try{
+    const bookingData = {
+      businessId: business.id,
       businessName: business.name,
+      ownerId: business.ownerId,
       serviceName: selectedService.name,
-      price: selectedService.price,
-      customerName: customerName,
-      phone: phone,
+      price: Number(selectedService.price),
+      customerName,
+      phone,
       date: bookingDate,
       time: bookingTime,
-      status: "Pending",
+      status: "pending",
+      createdAt: serverTimestamp(),
     };
+    
+    await addDoc(collection(db, "bookings"), bookingData); 
 
-    setBookings((previousBookings) => [...previousBookings, newBooking]);
     setBookingSubmitted(true);
+    alert("Booking submitted successfully!");
+  } catch (error) {
+    console.error("Error submitting booking:", error);
+    alert("An error occurred while submitting the booking. Please try again.");
+  }
   }
 
   // Function to update the booking status
@@ -183,6 +197,7 @@ function BusinessDetails() {
                 <input
                   type="text"
                   id="customerName"
+                  required
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Enter your name"
@@ -212,6 +227,7 @@ function BusinessDetails() {
                 <input
                   type="date"
                   id="bookingDate"
+                  required
                   value={bookingDate}
                   onChange={(e) => setBookingDate(e.target.value)}
                   className="w-full border border-gray-300 p-2 rounded-lg"
@@ -225,6 +241,7 @@ function BusinessDetails() {
                 <input
                   type="time"
                   id="bookingTime"
+                  required
                   value={bookingTime}
                   onChange={(e) => setBookingTime(e.target.value)}
                   className="w-full border border-gray-300 p-2 rounded-lg"
