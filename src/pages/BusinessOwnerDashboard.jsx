@@ -132,7 +132,7 @@ function BusinessOwnerDashboard() {
         </h1>
 
         <p className="mb-8 text-gray-600">
-          Add your business and the services you offer.
+          {isEditing ? "Edit Your Business" : "Add Your Business"}
         </p>
 
         {loadingBusiness ? (
@@ -180,7 +180,7 @@ function BusinessOwnerDashboard() {
           </p>
         )}
 
-        {!myBusiness && (
+        {(!myBusiness || isEditing) && (
         <form
           onSubmit={handleSubmit}
           className="space-y-6 rounded-xl bg-white p-6 shadow-sm"
@@ -244,8 +244,7 @@ function BusinessOwnerDashboard() {
               <button
                 type="button"
                 onClick={addService}
-                className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium hover:bg-gray-200"
-              >
+                className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium hover:bg-gray-200">
                 Add service
               </button>
             </div>
