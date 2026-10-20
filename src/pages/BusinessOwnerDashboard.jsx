@@ -56,7 +56,6 @@ function BusinessOwnerDashboard() {
 
         setBookings(ownerBookings);
         console.log("Bookings found:", ownerBookings.length);
-
       } catch (error) {
         console.error("Error loading owner's business:", error);
       } finally {
@@ -151,6 +150,28 @@ function BusinessOwnerDashboard() {
     } catch (error) {
       console.error("Error adding business:", error);
       alert("An error occurred while adding the business. Please try again.");
+    }
+  }
+
+  // Function to confirm a booking
+  async function confirmBooking(bookingId) {
+    try {
+      await updateDoc(doc(db, "bookings", bookingId), {
+        status: "confirmed",
+      });
+
+      setBookings((currentBookings) =>
+        currentBookings.map((booking) =>
+          booking.id === bookingId
+            ? { ...booking, status: "confirmed" }
+            : booking,
+        ),
+      );
+
+      alert("Booking confirmed successfully!");
+    } catch (error) {
+      console.error("Error confirming booking:", error);
+      alert("Could not confirm booking. Please try again.");
     }
   }
 
@@ -376,6 +397,17 @@ function BusinessOwnerDashboard() {
                   <p className="mt-2 font-semibold text-green-800">
                     KSh {Number(booking.price).toLocaleString()}
                   </p>
+
+                  {booking.status === "pending" && (
+                    <button
+                      type="button"
+                      onClick={() => confirmBooking(booking.id)}
+                      className="mt-4 rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700"
+                    >
+                      Confirm Booking
+                    </button>
+                  )}
+
                 </div>
               ))}
             </div>
