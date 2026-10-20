@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
+import { query, where, getDocs } from "firebase/firestore";
 
 function BusinessOwnerDashboard() {
   const [businessName, setBusinessName] = useState("");
@@ -9,6 +11,52 @@ function BusinessOwnerDashboard() {
   const [description, setDescription] = useState("");
 
   const [services, setServices] = useState([{ name: "", price: "" }]);
+
+  const [myBusiness, setMyBusiness] = useState(null);
+  const [loadingBusiness, setLoadingBusiness] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setMyBusiness(null);
+        setLoadingBusiness(false);
+        console.log("No signed-in user.");
+        return;
+      }
+
+      console.log("Authenticated UID:", user.uid);
+
+      setLoadingBusiness(true);
+
+      try {
+        const businessesQuery = query(
+          collection(db, "businesses"),
+          where("ownerId", "==", user.uid),
+        );
+
+        const snapshot = await getDocs(businessesQuery);
+
+        console.log("Businesses found:", snapshot.size);
+
+        if (!snapshot.empty) {
+          const businessDoc = snapshot.docs[0];
+
+          setMyBusiness({
+            id: businessDoc.id,
+            ...businessDoc.data(),
+          });
+        } else {
+          setMyBusiness(null);
+        }
+      } catch (error) {
+        console.error("Error loading owner's business:", error);
+      } finally {
+        setLoadingBusiness(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   function handleServiceChange(index, field, value) {
     const updatedServices = [...services];
@@ -40,10 +88,10 @@ function BusinessOwnerDashboard() {
     try {
       const businessData = {
         name: businessName,
-        category: category, 
-        location: location, 
+        category: category,
+        location: location,
         description: description,
-        services: services.map ((service) => ({
+        services: services.map((service) => ({
           name: service.name,
           price: service.price,
         })),
@@ -59,8 +107,7 @@ function BusinessOwnerDashboard() {
       console.error("Error adding business:", error);
       alert("An error occurred while adding the business. Please try again.");
     }
-  };
-     
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -72,6 +119,47 @@ function BusinessOwnerDashboard() {
         <p className="mb-8 text-gray-600">
           Add your business and the services you offer.
         </p>
+
+        {loadingBusiness ? (
+          <p className="mb-6 text-gray-600">Loading your business...</p>
+        ) : myBusiness ? (
+          <div className="mb-6 rounded-xl border bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-xl font-bold">Your Business</h2>
+
+            <h3 className="text-lg font-semibold">{myBusiness.name}</h3>
+
+            <p className="text-gray-600">{myBusiness.category}</p>
+
+            <p className="text-gray-600">{myBusiness.location}</p>
+
+            <p className="mt-3">{myBusiness.description}</p>
+
+            <h4 className="mt-5 font-semibold">Services and Prices</h4>
+
+            <ul className="mt-2 space-y-2">
+              {myBusiness.services?.map((service, index) => (
+                <li
+                  key={index}
+                  className="flex justify-between rounded-lg bg-gray-50 p-3"
+                >
+                  <span>{service.name}</span>
+                  <span className="font-medium">KES {service.price}</span>
+                </li>
+              ))}
+            </ul>
+
+            <p className="mt-4 text-sm">
+              Status:{" "}
+              <span className="font-semibold">
+                {myBusiness.published ? "Published" : "Unpublished"}
+              </span>
+            </p>
+          </div>
+        ) : (
+          <p className="mb-6 text-gray-600">
+            You haven't created a business yet.
+          </p>
+        )}
 
         <form
           onSubmit={handleSubmit}
