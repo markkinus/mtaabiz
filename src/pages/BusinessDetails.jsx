@@ -6,7 +6,7 @@ import {
   collection,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "../firebase/config";
+import { db, auth } from "../firebase/config";
 import { useState, useEffect } from "react";
 
 function BusinessDetails() {
@@ -56,11 +56,19 @@ function BusinessDetails() {
       return;
     }
 
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Please login before making a booking.");
+      return;
+    }
+
     try {
       const bookingData = {
         businessId: business.id,
         businessName: business.name,
-        ownerId: business.ownerId,
+        ownerId: business.ownerId, 
+        customerId: user.uid,
         serviceName: selectedService.name,
         price: Number(selectedService.price),
         customerName,

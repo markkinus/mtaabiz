@@ -10,6 +10,7 @@ import { db } from "./firebase/config";
 import BusinessOwnerDashboard from "./pages/BusinessOwnerDashboard";
 import OwnerAuth from "./pages/OwnerAuth";
 import ProtectedOwnerRoute from "./components/ProtectedOwnerRoute";
+import CustomerAuth from "./pages/CustomerAuth";
 
 function Home() {
   // Search
@@ -148,6 +149,7 @@ function App() {
       <Route path="/owner/dashboard" element={<BusinessOwnerDashboard />} />
       <Route path="/owner/auth" element={<OwnerAuth />} />
       <Route path="/owner/dashboard" element={<ProtectedOwnerRoute> <BusinessOwnerDashboard /> </ProtectedOwnerRoute>}/>
+      <Route path="/login" element={<CustomerAuth />} />
     </Routes>
   );
 }
