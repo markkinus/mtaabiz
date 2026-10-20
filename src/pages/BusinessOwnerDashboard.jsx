@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
-import { query, where, getDocs } from "firebase/firestore";
+import { query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 
 function BusinessOwnerDashboard() {
   const [businessName, setBusinessName] = useState("");
@@ -114,10 +114,27 @@ function BusinessOwnerDashboard() {
         published: true,
       };
 
-      await addDoc(collection(db, "businesses"), businessData);
-      alert("Business added successfully!");
+      if(isEditing && myBusiness) {
 
-      console.log("Business data:", businessData);
+        // Update an existing business
+        await updateDoc(doc(db, "businesses", myBusiness.id), businessData);
+
+        setMyBusiness({
+          id: myBusiness.id,
+          ...businessData,
+        });
+
+        setIsEditing(false)
+        alert("Business updated successfully!");
+      } else {
+        // Add a new business
+        const businessRef = await addDoc(collection(db, "businesses"), businessData);
+        setMyBusiness({
+          id: businessRef.id,
+          ...businessData,
+        });
+        alert("Business added successfully!");
+      }
     } catch (error) {
       console.error("Error adding business:", error);
       alert("An error occurred while adding the business. Please try again.");
@@ -297,7 +314,7 @@ function BusinessOwnerDashboard() {
             type="submit"
             className="w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
           >
-            Preview business details
+            {isEditing ? "Save Changes" : "Create Business"}
           </button>
         </form>
         )}
