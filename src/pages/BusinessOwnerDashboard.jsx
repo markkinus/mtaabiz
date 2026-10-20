@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { addDoc, collection } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
-import { query, where, getDocs, doc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 
 function BusinessOwnerDashboard() {
   const [businessName, setBusinessName] = useState("");
@@ -16,11 +23,16 @@ function BusinessOwnerDashboard() {
   const [loadingBusiness, setLoadingBusiness] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
+  const [bookings, setBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setMyBusiness(null);
+        setBookings([]);
         setLoadingBusiness(false);
+        setLoadingBookings(false);
         console.log("No signed-in user.");
         return;
       }
@@ -30,29 +42,26 @@ function BusinessOwnerDashboard() {
       setLoadingBusiness(true);
 
       try {
-        const businessesQuery = query(
-          collection(db, "businesses"),
+        const bookingsQuery = query(
+          collection(db, "bookings"),
           where("ownerId", "==", user.uid),
         );
 
-        const snapshot = await getDocs(businessesQuery);
+        const bookingsSnapshot = await getDocs(bookingsQuery);
 
-        console.log("Businesses found:", snapshot.size);
+        const ownerBookings = bookingsSnapshot.docs.map((bookingDoc) => ({
+          id: bookingDoc.id,
+          ...bookingDoc.data(),
+        }));
 
-        if (!snapshot.empty) {
-          const businessDoc = snapshot.docs[0];
+        setBookings(ownerBookings);
+        console.log("Bookings found:", ownerBookings.length);
 
-          setMyBusiness({
-            id: businessDoc.id,
-            ...businessDoc.data(),
-          });
-        } else {
-          setMyBusiness(null);
-        }
       } catch (error) {
         console.error("Error loading owner's business:", error);
       } finally {
         setLoadingBusiness(false);
+        setLoadingBookings(false);
       }
     });
 
@@ -77,10 +86,12 @@ function BusinessOwnerDashboard() {
     setLocation(myBusiness.location);
     setDescription(myBusiness.description);
 
-    setServices(myBusiness.services?.map((service) => ({
-      name: service.name,
-      price: service.price,
-    })) || []);
+    setServices(
+      myBusiness.services?.map((service) => ({
+        name: service.name,
+        price: service.price,
+      })) || [],
+    );
     setIsEditing(true);
   };
 
@@ -114,8 +125,7 @@ function BusinessOwnerDashboard() {
         published: true,
       };
 
-      if(isEditing && myBusiness) {
-
+      if (isEditing && myBusiness) {
         // Update an existing business
         await updateDoc(doc(db, "businesses", myBusiness.id), businessData);
 
@@ -124,11 +134,14 @@ function BusinessOwnerDashboard() {
           ...businessData,
         });
 
-        setIsEditing(false)
+        setIsEditing(false);
         alert("Business updated successfully!");
       } else {
         // Add a new business
-        const businessRef = await addDoc(collection(db, "businesses"), businessData);
+        const businessRef = await addDoc(
+          collection(db, "businesses"),
+          businessData,
+        );
         setMyBusiness({
           id: businessRef.id,
           ...businessData,
@@ -185,8 +198,11 @@ function BusinessOwnerDashboard() {
               <span className="font-semibold">
                 {myBusiness.published ? "Published" : "Unpublished"}
               </span>
-
-              <button type="button" onClick={startEditing} className="ml-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2">
+              <button
+                type="button"
+                onClick={startEditing}
+                className="ml-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2"
+              >
                 Edit Business
               </button>
             </p>
@@ -198,126 +214,173 @@ function BusinessOwnerDashboard() {
         )}
 
         {(!myBusiness || isEditing) && (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 rounded-xl bg-white p-6 shadow-sm"
-        >
-          <div>
-            <label className="mb-2 block font-medium">Business name</label>
-            <input
-              className="w-full rounded-lg border p-3"
-              value={businessName}
-              onChange={(event) => setBusinessName(event.target.value)}
-              placeholder="e.g. Fresh Cuts Barbershop"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block font-medium">Category</label>
-            <select
-              className="w-full rounded-lg border p-3"
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              required
-            >
-              <option>Beauty & Grooming</option>
-              <option>Automotive</option>
-              <option>Home Services</option>
-              <option>Photography</option>
-              <option>Electronics Repair</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-2 block font-medium">Business location</label>
-            <input
-              className="w-full rounded-lg border p-3"
-              value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              placeholder="e.g. Kasarani, Nairobi"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block font-medium">
-              Business description
-            </label>
-            <textarea
-              className="w-full rounded-lg border p-3"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Tell customers about your business..."
-              required
-            />
-          </div>
-
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Services and prices</h2>
-
-              <button
-                type="button"
-                onClick={addService}
-                className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium hover:bg-gray-200">
-                Add service
-              </button>
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6 rounded-xl bg-white p-6 shadow-sm"
+          >
+            <div>
+              <label className="mb-2 block font-medium">Business name</label>
+              <input
+                className="w-full rounded-lg border p-3"
+                value={businessName}
+                onChange={(event) => setBusinessName(event.target.value)}
+                placeholder="e.g. Fresh Cuts Barbershop"
+                required
+              />
             </div>
 
-            <div className="space-y-4">
-              {services.map((service, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-1 gap-3 rounded-lg border p-4 sm:grid-cols-2"
-                >
-                  <input
-                    className="rounded-lg border p-3"
-                    placeholder="Service name"
-                    value={service.name}
-                    onChange={(event) =>
-                      handleServiceChange(index, "name", event.target.value)
-                    }
-                    required
-                  />
+            <div>
+              <label className="mb-2 block font-medium">Category</label>
+              <select
+                className="w-full rounded-lg border p-3"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                required
+              >
+                <option>Beauty & Grooming</option>
+                <option>Automotive</option>
+                <option>Home Services</option>
+                <option>Photography</option>
+                <option>Electronics Repair</option>
+                <option>Other</option>
+              </select>
+            </div>
 
-                  <div className="flex gap-2">
+            <div>
+              <label className="mb-2 block font-medium">
+                Business location
+              </label>
+              <input
+                className="w-full rounded-lg border p-3"
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
+                placeholder="e.g. Kasarani, Nairobi"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block font-medium">
+                Business description
+              </label>
+              <textarea
+                className="w-full rounded-lg border p-3"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Tell customers about your business..."
+                required
+              />
+            </div>
+
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Services and prices</h2>
+
+                <button
+                  type="button"
+                  onClick={addService}
+                  className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium hover:bg-gray-200"
+                >
+                  Add service
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {services.map((service, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-1 gap-3 rounded-lg border p-4 sm:grid-cols-2"
+                  >
                     <input
-                      className="min-w-0 flex-1 rounded-lg border p-3"
-                      type="number"
-                      placeholder="Price (KES)"
-                      value={service.price}
+                      className="rounded-lg border p-3"
+                      placeholder="Service name"
+                      value={service.name}
                       onChange={(event) =>
-                        handleServiceChange(index, "price", event.target.value)
+                        handleServiceChange(index, "name", event.target.value)
                       }
                       required
                     />
 
-                    {services.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeService(index)}
-                        className="rounded-lg px-3 text-red-600 hover:bg-red-50"
-                        aria-label={`Remove service ${index + 1}`}
-                      >
-                        Remove
-                      </button>
-                    )}
+                    <div className="flex gap-2">
+                      <input
+                        className="min-w-0 flex-1 rounded-lg border p-3"
+                        type="number"
+                        placeholder="Price (KES)"
+                        value={service.price}
+                        onChange={(event) =>
+                          handleServiceChange(
+                            index,
+                            "price",
+                            event.target.value,
+                          )
+                        }
+                        required
+                      />
+
+                      {services.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeService(index)}
+                          className="rounded-lg px-3 text-red-600 hover:bg-red-50"
+                          aria-label={`Remove service ${index + 1}`}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+            >
+              {isEditing ? "Save Changes" : "Create Business"}
+            </button>
+          </form>
+        )}
+
+        <section className="mt-10">
+          <h2 className="mb-5 text-2xl font-bold">Booking Requests</h2>
+
+          {loadingBookings ? (
+            <p className="text-gray-600">Loading bookings...</p>
+          ) : bookings.length === 0 ? (
+            <p className="rounded-lg border bg-white p-5 text-gray-600">
+              You have no booking requests yet.
+            </p>
+          ) : (
+            <div className="grid gap-4">
+              {bookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="rounded-xl border bg-white p-5 shadow-sm"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <h3 className="text-lg font-bold">{booking.serviceName}</h3>
+
+                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+                      {booking.status}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-gray-700">
+                    Customer: {booking.customerName}
+                  </p>
+                  <p className="text-gray-700">Phone: {booking.phone}</p>
+                  <p className="text-gray-700">Date: {booking.date}</p>
+                  <p className="text-gray-700">Time: {booking.time}</p>
+
+                  <p className="mt-2 font-semibold text-green-800">
+                    KSh {Number(booking.price).toLocaleString()}
+                  </p>
                 </div>
               ))}
             </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-          >
-            {isEditing ? "Save Changes" : "Create Business"}
-          </button>
-        </form>
-        )}
+          )}
+        </section>
       </div>
     </div>
   );
