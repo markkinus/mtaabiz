@@ -67,7 +67,7 @@ function BusinessDetails() {
       const bookingData = {
         businessId: business.id,
         businessName: business.name,
-        ownerId: business.ownerId, 
+        ownerId: business.ownerId,
         customerId: user.uid,
         serviceName: selectedService.name,
         price: Number(selectedService.price),
@@ -124,6 +124,16 @@ function BusinessDetails() {
         <p className="text-gray-500 mt-2"> {business.location}</p>
 
         <p className="text-gray-700 mt-4">{business.description}</p>
+
+        {business.whatsappNumber && (
+          <a
+            href={`https://wa.me/${business.whatsappNumber}`}
+            target="_blank"
+            className="mt-4 inline-block rounded-lg bg-green-600 px-5 py-3 font-semibold text-white hover:bg-green-700"
+          >
+            Chat on WhatsApp
+          </a>
+        )}
       </section>
 
       <section className="mt-8">

@@ -16,6 +16,7 @@ function BusinessOwnerDashboard() {
   const [category, setCategory] = useState("Beauty & Grooming");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
 
   const [services, setServices] = useState([{ name: "", price: "" }]);
 
@@ -42,6 +43,29 @@ function BusinessOwnerDashboard() {
       setLoadingBusiness(true);
 
       try {
+        // Load owner's business
+        const businessQuery = query(
+          collection(db, "businesses"),
+          where("ownerId", "==", user.uid),
+        );
+
+        const businessSnapshot = await getDocs(businessQuery);
+
+        if (!businessSnapshot.empty) {
+          const businessDoc = businessSnapshot.docs[0];
+
+          setMyBusiness({
+            id: businessDoc.id,
+            ...businessDoc.data(),
+          });
+
+          console.log("Business found:", businessDoc.data());
+        } else {
+          setMyBusiness(null);
+          console.log("No business found for this owner.");
+        }
+
+        // Load owner's bookings
         const bookingsQuery = query(
           collection(db, "bookings"),
           where("ownerId", "==", user.uid),
@@ -55,6 +79,7 @@ function BusinessOwnerDashboard() {
         }));
 
         setBookings(ownerBookings);
+
         console.log("Bookings found:", ownerBookings.length);
       } catch (error) {
         console.error("Error loading owner's business:", error);
@@ -84,6 +109,7 @@ function BusinessOwnerDashboard() {
     setCategory(myBusiness.category);
     setLocation(myBusiness.location);
     setDescription(myBusiness.description);
+    setWhatsappNumber(myBusiness.whatsappNumber || "");
 
     setServices(
       myBusiness.services?.map((service) => ({
@@ -116,6 +142,7 @@ function BusinessOwnerDashboard() {
         category: category,
         location: location,
         description: description,
+        whatsappNumber: whatsappNumber,
         services: services.map((service) => ({
           name: service.name,
           price: service.price,
@@ -282,6 +309,25 @@ function BusinessOwnerDashboard() {
 
             <div>
               <label className="mb-2 block font-medium">
+                Business WhatsApp Number
+              </label>
+
+              <input
+                type="tel"
+                className="w-full rounded-lg border p-3"
+                value={whatsappNumber}
+                onChange={(event) => setWhatsappNumber(event.target.value)}
+                placeholder="e.g. 0712345678"
+                required
+              />
+
+              <p className="mt-1 text-sm text-gray-500">
+                Enter the WhatsApp number customers should contact.
+              </p>
+            </div>
+
+            <div>
+              <label className="mb-2 block font-medium">
                 Business description
               </label>
               <textarea
@@ -407,7 +453,6 @@ function BusinessOwnerDashboard() {
                       Confirm Booking
                     </button>
                   )}
-
                 </div>
               ))}
             </div>
