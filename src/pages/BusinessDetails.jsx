@@ -1,11 +1,38 @@
 import { Link, useParams } from "react-router-dom";
-import businesses from "../data/Business";
-import { useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/config";
+import { useState, useEffect } from "react";
 
 function BusinessDetails() {
   const { id } = useParams();
 
-  const business = businesses.find((item) => item.id === Number(id));
+  const [business, setBusiness] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBusiness() {
+      try {
+        const businessRef = doc(db, "businesses", id);
+        const businessSnap = await getDoc(businessRef);
+
+        if (businessSnap.exists()) {
+          setBusiness({
+            id: businessSnap.id,
+            ...businessSnap.data(),
+          });
+        } else {
+          setBusiness(null);
+        }
+      } catch (error) {
+        console.error("Error fetching business:", error);
+        setBusiness(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchBusiness();
+  }, [id]);
 
   const [selectedService, setSelectedService] = useState(null);
   const [customerName, setCustomerName] = useState("");
@@ -14,28 +41,25 @@ function BusinessDetails() {
   const [bookingTime, setBookingTime] = useState("");
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
 
-  const [bookings, setBookings] = useState([])
+  const [bookings, setBookings] = useState([]);
 
   // Function to handle form submission
   function handleBookingSubmit(event) {
     event.preventDefault();
 
     const newBooking = {
-      id: Date.now(), 
-      businessName: business.name,  
-      serviceName: selectedService.name, 
-      price: selectedService.price, 
-      customerName: customerName, 
-      phone: phone, 
-      date: bookingDate, 
-      time: bookingTime, 
-      status: "Pending"
+      id: Date.now(),
+      businessName: business.name,
+      serviceName: selectedService.name,
+      price: selectedService.price,
+      customerName: customerName,
+      phone: phone,
+      date: bookingDate,
+      time: bookingTime,
+      status: "Pending",
     };
 
-    setBookings((previousBookings) => [
-      ...previousBookings,
-      newBooking
-    ]);
+    setBookings((previousBookings) => [...previousBookings, newBooking]);
     setBookingSubmitted(true);
   }
 
@@ -43,8 +67,16 @@ function BusinessDetails() {
   function updateBookingStatus(bookingId, newStatus) {
     setBookings((previousBookings) =>
       previousBookings.map((booking) =>
-        booking.id === bookingId ? { ...booking, status: newStatus } : booking
-      )
+        booking.id === bookingId ? { ...booking, status: newStatus } : booking,
+      ),
+    );
+  }
+
+  if (loading) {
+    return (
+    <main className="p-8 text-center">  
+    <p>Loading Business details...</p>;
+    </main>
     );
   }
 
@@ -87,11 +119,15 @@ function BusinessDetails() {
                 KSh {service.price.toLocaleString()}
               </p>
 
-              <button 
-              type="button" 
-              onClick={() => { setSelectedService(service); 
-              setBookingSubmitted(false)}} className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg mt-4 hover:bg-green-600 hover:text-white"> 
-              Book This Service
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedService(service);
+                  setBookingSubmitted(false);
+                }}
+                className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg mt-4 hover:bg-green-600 hover:text-white"
+              >
+                Book This Service
               </button>
             </div>
           ))}
@@ -100,7 +136,9 @@ function BusinessDetails() {
 
       {selectedService && (
         <section className="mt-10 bg-white border rounded-xl p-5">
-          <h2 className="text-2xl font-bold mb-5">Book {selectedService.name}</h2>
+          <h2 className="text-2xl font-bold mb-5">
+            Book {selectedService.name}
+          </h2>
 
           <p>
             You selected: <strong>{selectedService.name}</strong>
@@ -109,36 +147,36 @@ function BusinessDetails() {
 
           {bookingSubmitted ? (
             <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-            <h3 className="text-green-800 font-semibold mt-2">
-              Booking submitted successfully!
-            </h3>
-            <p className="text-green-800">
-              Thank you, {customerName}! Your booking has been confirmed.
-            </p>
+              <h3 className="text-green-800 font-semibold mt-2">
+                Booking submitted successfully!
+              </h3>
+              <p className="text-green-800">
+                Thank you, {customerName}! Your booking has been confirmed.
+              </p>
 
-            <p className="text-green-800">
-              Date: {bookingDate} . Time: {bookingTime}.
-            </p>
+              <p className="text-green-800">
+                Date: {bookingDate} . Time: {bookingTime}.
+              </p>
 
-            <p className="text-green-800">
-              We look forward to serving you!
-            </p>
+              <p className="text-green-800">We look forward to serving you!</p>
 
-            <button type="button" onClick={() => {
-              setBookingSubmitted(false)
-              setCustomerName("")
-              setPhone("")
-              setBookingDate("")
-              setBookingTime("")
-            }}
-            className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg mt-4 hover:bg-green-600 hover:text-white">
-            Book Another Service
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setBookingSubmitted(false);
+                  setCustomerName("");
+                  setPhone("");
+                  setBookingDate("");
+                  setBookingTime("");
+                }}
+                className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg mt-4 hover:bg-green-600 hover:text-white"
+              >
+                Book Another Service
+              </button>
+            </div>
           ) : (
-            <form onSubmit={handleBookingSubmit}
-              className="mb-4">
-                <div>
+            <form onSubmit={handleBookingSubmit} className="mb-4">
+              <div>
                 <label className="block text-gray-700 font-semibold mb-2">
                   Customer Name
                 </label>
@@ -148,7 +186,8 @@ function BusinessDetails() {
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="Enter your name"
-                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+                  className="w-full border border-gray-300 p-2 rounded-lg"
+                />
               </div>
 
               <div>
@@ -156,12 +195,14 @@ function BusinessDetails() {
                   Phone Number
                 </label>
                 <input
-                  type="tel" required
+                  type="tel"
+                  required
                   id="phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Enter your phone number"
-                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+                  className="w-full border border-gray-300 p-2 rounded-lg"
+                />
               </div>
 
               <div>
@@ -173,7 +214,8 @@ function BusinessDetails() {
                   id="bookingDate"
                   value={bookingDate}
                   onChange={(e) => setBookingDate(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+                  className="w-full border border-gray-300 p-2 rounded-lg"
+                />
               </div>
 
               <div>
@@ -185,22 +227,27 @@ function BusinessDetails() {
                   id="bookingTime"
                   value={bookingTime}
                   onChange={(e) => setBookingTime(e.target.value)}
-                  className="w-full border border-gray-300 p-2 rounded-lg"/>
+                  className="w-full border border-gray-300 p-2 rounded-lg"
+                />
               </div>
 
               <div className="mt-4">
                 <button
                   type="submit"
-                  className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg hover:bg-green-600 hover:text-white">
+                  className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg hover:bg-green-600 hover:text-white"
+                >
                   Submit Booking
                 </button>
 
-                <button type="button" onClick={() => {
-                  setSelectedService(null)
-                  setBookingSubmitted(false)
-                }}
-                className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100">
-                Cancel
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedService(null);
+                    setBookingSubmitted(false);
+                  }}
+                  className="border border-gray-300 px-6 py-3 rounded-lg hover:bg-gray-100"
+                >
+                  Cancel
                 </button>
               </div>
             </form>
@@ -211,33 +258,42 @@ function BusinessDetails() {
       <section className="mt-10">
         <h2 className="text-2xl font-bold mb-5">Booking Request</h2>
         {bookings.length === 0 ? (
-          <p className = "text-gray-600">No booking requests yet.</p>
+          <p className="text-gray-600">No booking requests yet.</p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {bookings.map((booking) => (
-              <div key={booking.id} className="bg-white border border-gray-300 p-4 rounded-lg">
+              <div
+                key={booking.id}
+                className="bg-white border border-gray-300 p-4 rounded-lg"
+              >
                 <h3 className="text-lg font-semibold">{booking.serviceName}</h3>
-                <p className = "text-gray-600">Business:{booking.businessName}</p>
-                <p className = "text-gray-600">Customer Name: {booking.customerName}
+                <p className="text-gray-600">Business:{booking.businessName}</p>
+                <p className="text-gray-600">
+                  Customer Name: {booking.customerName}
                 </p>
-                <p className = "text-gray-600">Phone Number: {booking.phone}
+                <p className="text-gray-600">Phone Number: {booking.phone}</p>
+                <p className="text-gray-600">Booking Date: {booking.date}</p>
+                <p className="text-gray-600">Booking Time: {booking.time}</p>
+                <p className="font-semibold text-green-800 mt-2">
+                  KSH {booking.price.toLocaleString()}
                 </p>
-                <p className = "text-gray-600">Booking Date: {booking.date}
-                </p>
-                <p className = "text-gray-600">Booking Time: {booking.time}
-                </p>
-                <p className = "font-semibold text-green-800 mt-2">KSH {booking.price.toLocaleString()}</p>
-                <p className = "text-gray-600">Status: {booking.status}</p>
+                <p className="text-gray-600">Status: {booking.status}</p>
                 {booking.status === "Pending" && (
                   <div className="mt-4">
                     <button
-                      onClick={() => updateBookingStatus(booking.id, "Accepted")}
-                      className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg hover:bg-green-600 hover:text-white">
+                      onClick={() =>
+                        updateBookingStatus(booking.id, "Accepted")
+                      }
+                      className="w-full border border-green-700 text-green-800 py-2 px-4 rounded-lg hover:bg-green-600 hover:text-white"
+                    >
                       Accept
                     </button>
                     <button
-                      onClick={() => updateBookingStatus(booking.id, "Declined")}
-                      className="w-full border border-red-700 text-red-800 py-2 px-4 rounded-lg hover:bg-red-600 hover:text-white mt-2">
+                      onClick={() =>
+                        updateBookingStatus(booking.id, "Declined")
+                      }
+                      className="w-full border border-red-700 text-red-800 py-2 px-4 rounded-lg hover:bg-red-600 hover:text-white mt-2"
+                    >
                       Decline
                     </button>
                   </div>
@@ -248,7 +304,6 @@ function BusinessDetails() {
         )}
         <p>{selectedService?.description}</p>
       </section>
-
     </main>
   );
 }
