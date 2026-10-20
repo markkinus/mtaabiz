@@ -14,6 +14,7 @@ function BusinessOwnerDashboard() {
 
   const [myBusiness, setMyBusiness] = useState(null);
   const [loadingBusiness, setLoadingBusiness] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -68,6 +69,20 @@ function BusinessOwnerDashboard() {
 
     setServices(updatedServices);
   }
+
+  // Function to start editing
+  const startEditing = () => {
+    setBusinessName(myBusiness.name);
+    setCategory(myBusiness.category);
+    setLocation(myBusiness.location);
+    setDescription(myBusiness.description);
+
+    setServices(myBusiness.services?.map((service) => ({
+      name: service.name,
+      price: service.price,
+    })) || []);
+    setIsEditing(true);
+  };
 
   function addService() {
     setServices([...services, { name: "", price: "" }]);
@@ -153,6 +168,10 @@ function BusinessOwnerDashboard() {
               <span className="font-semibold">
                 {myBusiness.published ? "Published" : "Unpublished"}
               </span>
+
+              <button type="button" onClick={startEditing} className="ml-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2">
+                Edit Business
+              </button>
             </p>
           </div>
         ) : (
@@ -161,6 +180,7 @@ function BusinessOwnerDashboard() {
           </p>
         )}
 
+        {!myBusiness && (
         <form
           onSubmit={handleSubmit}
           className="space-y-6 rounded-xl bg-white p-6 shadow-sm"
@@ -281,6 +301,7 @@ function BusinessOwnerDashboard() {
             Preview business details
           </button>
         </form>
+        )}
       </div>
     </div>
   );
