@@ -10,6 +10,8 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
+import { Link, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
 
 function BusinessOwnerDashboard() {
   const [businessName, setBusinessName] = useState("");
@@ -26,6 +28,18 @@ function BusinessOwnerDashboard() {
 
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
+
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Could not log out. Please try again.");
+    }
+  }
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -205,12 +219,58 @@ function BusinessOwnerDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-3xl">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900">
-          Business Owner Dashboard
-        </h1>
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <Link
+              to="/"
+              className="mb-3 inline-block font-semibold text-green-700 hover:underline"
+            >
+              ← Back to Home
+            </Link>
 
-        <p className="mb-8 text-gray-600">
-          {isEditing ? "Edit Your Business" : "Add Your Business"}
+            <h1 className="text-3xl font-bold text-gray-900">
+              Business Owner Dashboard
+            </h1>
+
+            <p className="mt-2 text-gray-600">
+              Manage your business details and customer bookings.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700"
+          >
+            Logout
+          </button>
+        </div>
+
+        {myBusiness && (
+          <div className="mb-6 flex flex-wrap gap-3">
+            <Link
+              to={`/businesses/${myBusiness.id}`}
+              className="rounded-lg bg-green-700 px-4 py-2 font-semibold text-white hover:bg-green-800"
+            >
+              View My Business
+            </Link>
+
+            <button
+              type="button"
+              onClick={startEditing}
+              className="rounded-lg border border-blue-600 px-4 py-2 font-semibold text-blue-700 hover:bg-blue-50"
+            >
+              Edit Business
+            </button>
+          </div>
+        )}
+
+        <p className="mb-6 text-gray-600">
+          {isEditing
+            ? "Edit Your Business"
+            : myBusiness
+              ? "Your business overview"
+              : "Add Your Business"}
         </p>
 
         {loadingBusiness ? (
