@@ -59,7 +59,7 @@ function Navbar() {
             to="/owner/auth"
             className="bg-white text-green-800 py-2 px-4 rounded-lg font-semibold hover:bg-green-100"
           >
-            For Business Owners
+            List Your Business
           </Link>
         </div>
       </div>

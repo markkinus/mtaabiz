@@ -13,6 +13,7 @@ import ProtectedOwnerRoute from "./components/ProtectedOwnerRoute";
 import CustomerAuth from "./pages/CustomerAuth";
 import MyBookings from "./pages/MyBookings";
 
+
 function Home() {
   // Search
   const [searchTerm, setSearchTerm] = useState("");
@@ -146,9 +147,25 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/businesses/:id" element={<BusinessDetails />} /> 
+      <Route path="/businesses/:id" element={<BusinessDetails />} />
       <Route path="/owner/auth" element={<OwnerAuth />} />
-      <Route path="/owner/dashboard" element={<ProtectedOwnerRoute> <BusinessOwnerDashboard /> </ProtectedOwnerRoute>}/>
+      <Route
+        path="/owner/register-business"
+        element={
+          <ProtectedOwnerRoute requireBusiness={false}>
+            <BusinessOwnerDashboard />
+          </ProtectedOwnerRoute>
+        }
+      />
+
+      <Route
+        path="/owner/dashboard"
+        element={
+          <ProtectedOwnerRoute>
+            <BusinessOwnerDashboard />
+          </ProtectedOwnerRoute>
+        }
+      />
       <Route path="/login" element={<CustomerAuth />} />
       <Route path="/my-bookings" element={<MyBookings />} />
     </Routes>

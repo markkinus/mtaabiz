@@ -29,18 +29,21 @@ function OwnerAuth() {
           password,
         );
 
-        // Create the owner profile only during registration
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: userCredential.user.email,
           role: "owner",
           createdAt: new Date(),
         });
-      } else {
-        // Login only — don't overwrite the user's profile
-        await signInWithEmailAndPassword(auth, email, password);
-      }
 
-      navigate("/owner/dashboard");
+        // New users go to business registration.
+        navigate("/owner/register-business");
+      } else {
+        // Existing users log in first.
+        await signInWithEmailAndPassword(auth, email, password);
+
+        // The protected route will check business ownership.
+        navigate("/owner/dashboard");
+      }
     } catch (error) {
       console.error("Owner authentication error:", error.code, error.message);
 
@@ -53,7 +56,9 @@ function OwnerAuth() {
               ? "Please enter a valid email address."
               : error.code === "auth/operation-not-allowed"
                 ? "Email/password registration is disabled in Firebase."
-                : error.message,
+                : error.code === "permission-denied"
+                  ? "You do not have permission to perform this action."
+                  : error.message,
       );
     } finally {
       setLoading(false);
@@ -95,7 +100,7 @@ function OwnerAuth() {
             className="w-full rounded-lg border p-3"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 4 characters"
+            placeholder="At least 6 characters"
             autoComplete={isRegistering ? "new-password" : "current-password"}
             required
           />

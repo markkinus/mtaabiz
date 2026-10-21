@@ -145,7 +145,7 @@ function BusinessOwnerDashboard() {
         whatsappNumber: whatsappNumber,
         services: services.map((service) => ({
           name: service.name,
-          price: service.price,
+          price: Number(service.price),
         })),
         ownerId: auth.currentUser.uid,
         published: true,
