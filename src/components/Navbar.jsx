@@ -18,9 +18,9 @@ function Navbar() {
 
   async function handleLogout() {
     try {
+      setLoggingOut(true);
       await signOut(auth);
       navigate("/");
-      setLoggingOut(true);
     } catch (error) {
       console.error("Error logging out:", error);
       alert("Could not log out. Please try again.");
@@ -59,7 +59,7 @@ function Navbar() {
           </Link>
 
           {user ? (
-            <button onClick={handleLogout} disabled={loggingOut} className="hover:bg-green-700 border order-white py-2 px-4 font-semibold">
+            <button onClick={handleLogout} disabled={loggingOut} className="hover:bg-green-700 text-white py-2 px-4 font-semibold">
               {loggingOut ? "Logging out..." : "Logout"}
               </button>
           ) : (

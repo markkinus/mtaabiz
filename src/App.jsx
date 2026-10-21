@@ -1,7 +1,6 @@
 import Navbar from "./components/Navbar";
 import BusinessCard from "./components/BusinessCard";
 import BusinessDetails from "./pages/BusinessDetails";
-import { use } from "react";
 import { Routes, Route } from "react-router-dom";
 import { testFirestore } from "./firebase/testFirestore";
 import { useEffect, useState } from "react";
@@ -15,7 +14,7 @@ import MyBookings from "./pages/MyBookings";
 
 
 function Home() {
-  // Search
+
   const [searchTerm, setSearchTerm] = useState("");
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +56,7 @@ function Home() {
     );
   });
 
-  // Firebase
+  // Firebase test
   useEffect(() => {
     testFirestore().catch((error) => {
       console.error("Firebase error:", error);
