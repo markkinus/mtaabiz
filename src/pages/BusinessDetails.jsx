@@ -112,7 +112,7 @@ function BusinessDetails() {
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-10">
-      <Link to="/" className="text-green-700 hover:underline">
+      <Link to="/#businesses" className="text-green-700 hover:underline">
         Back to businesses
       </Link>
 

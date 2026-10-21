@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
 
 function Navbar() {
+  const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -17,9 +19,13 @@ function Navbar() {
   async function handleLogout() {
     try {
       await signOut(auth);
+      navigate("/");
+      setLoggingOut(true);
     } catch (error) {
       console.error("Error logging out:", error);
       alert("Could not log out. Please try again.");
+    } finally {
+      setLoggingOut(false);
     }
   }
 
@@ -39,20 +45,10 @@ function Navbar() {
             Businesses
           </Link>
 
-          {user ? (
-            <>
+          {user && (
               <Link to="/my-bookings" className="hover:text-green-200">
                 My Bookings
               </Link>
-
-              <button onClick={handleLogout} className="hover:text-green-200">
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="hover:text-green-200">
-              Login
-            </Link>
           )}
 
           <Link
@@ -61,6 +57,16 @@ function Navbar() {
           >
             List Your Business
           </Link>
+
+          {user ? (
+            <button onClick={handleLogout} disabled={loggingOut} className="hover:bg-green-700 border order-white py-2 px-4 font-semibold">
+              {loggingOut ? "Logging out..." : "Logout"}
+              </button>
+          ) : (
+            <Link to="/login" className="hover:text-green-200">
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </nav>
