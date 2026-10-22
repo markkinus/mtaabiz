@@ -94,7 +94,7 @@ function BusinessDetails() {
   if (loading) {
     return (
       <main className="p-8 text-center">
-        <p>Loading Business details...</p>;
+        <p>Loading Business details...</p>
       </main>
     );
   }
